@@ -1,19 +1,28 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const bodyparser = require("body-parser");
 const morgan = require("morgan");
 const path = require("path");
+const connectDB = require("./server/database/connection");
+const dotenv = require("dotenv");
 
 const app = express();
 
-const port = 3000;
+dotenv.config({ path: "config.env" });
+const PORT = process.env.PORT || 8080;
+
+//fix warning strictQurery
+mongoose.set("strictQuery", false);
 
 //log requests
 app.use(morgan("combined"));
 
+//mongoDB connect
+connectDB();
 //Template engine
 
 //parse request to body-parser
-app.use(bodyparser.urlencoded({ urlencoded: true }));
+app.use(express.urlencoded({ extended: true }));
 
 //set view engine
 app.set("view engine", "ejs");
@@ -24,16 +33,9 @@ app.use("/css", express.static(path.resolve(__dirname, "assets/css")));
 app.use("/img", express.static(path.resolve(__dirname, "assets/img")));
 app.use("/js", express.static(path.resolve(__dirname, "assets/js")));
 
-app.get("/", (req, res) => {
-  res.render("index");
-});
+//load routers
+app.use("/", require("./server/routes/router"));
 
-app.get("/add-user", (req, res) => {
-  res.render("add_user");
-});
-app.get("/update-user", (req, res) => {
-  res.render("update_user");
-});
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
